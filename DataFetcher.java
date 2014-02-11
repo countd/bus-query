@@ -8,7 +8,8 @@ import java.net.ProtocolException;
 import java.net.MalformedURLException;
 
 public class DataFetcher {
-	static final String BASE_URL = "http://api.stride-project.com/transportapi/7c60e7f4-20ff-11e3-857c-fcfb53959281/bus/stops/near";
+	static final String BASE_URL = "http://api.stride-project.com/transportapi/7c60e7f4-20ff-11e3-857c-fcfb53959281/bus";
+	static final String NEAR_URL = "/stops/near";
 	static final String API_KEY = "d74fce25-7c10-4e0d-b137-0c752f454d5f";
 	
 	private static String readStream(InputStream s) {
@@ -25,9 +26,20 @@ public class DataFetcher {
 
 		return result;
 	}
+
+	// fetch the bus station info
+	public static String fetchStopInfo(String atcocode) {
+		String urlString = String.format(BASE_URL + "/stop/%s/live", atcocode);
+		return fetchJSON(urlString);
+	}
 	
-	public static String fetchJSON(String lat, String lon) {
-		String urlString = String.format(BASE_URL + "?lat=%s&lon=%s&page=%d&rpp=%d", lat, lon, 1, 25);
+	// fetch the nearest bus station
+	public static String fetchNearestStops(String lat, String lon) {
+		String urlString = String.format(BASE_URL + NEAR_URL + "?lat=%s&lon=%s&page=%d&rpp=%d", lat, lon, 1, 25);
+		return fetchJSON(urlString);
+	}
+
+	private static String fetchJSON(String urlString) {
 		URL url = null;
 		HttpURLConnection con = null;
 		String json = "";
@@ -65,6 +77,6 @@ public class DataFetcher {
 	}
 	
 	public static void main(String[] argv) {
-		System.out.println(fetchJSON(argv[0], argv[1]));
+		System.out.println(fetchStopInfo(argv[0]));
 	}
 }

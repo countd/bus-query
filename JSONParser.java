@@ -1,5 +1,8 @@
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.Iterator;
 
 // (\"\w+\":\"*[\w\d\.\-\s]*\"*)
 
@@ -10,7 +13,7 @@ public class JSONParser {
 		}
 	}
 
-	public static BusStop[] parse(String json) {
+	public static BusStop[] parseNearest(String json) {
 		BusStop[] stops = null;
 		int filledStops = 0;
 		Matcher stopsMatcher = Pattern.compile("\"stops\":\\[([\\w\\W]+)\\]").matcher(json);
@@ -53,9 +56,30 @@ public class JSONParser {
 		return stops;
 	}
 
-	public static void main(String[] args) {
-		BusStop[] stops = parse(DataFetcher.fetchJSON("53.794333", "-1.7675"));
+	public static String[] parseStop(String json) {
+		Matcher infoElementMatcher = Pattern.compile("\"(\\w+)\":\"*([\\w\\d\\.\\-\\s]*)\"*").matcher(json);
+		Set<String> busSet = new HashSet<String>();
+		while(infoElementMatcher.find()) {
+			String elementName = infoElementMatcher.group(1);
+			String elementContent = infoElementMatcher.group(2);
+			if (elementName.equals("line")) {
+				busSet.add(elementContent);
+			}
+		}
 
+		String[] buses = new String[busSet.size()];
+		int count = 0;
+		Iterator iter = busSet.iterator();
+		while(iter.hasNext()) {
+			buses[count++] = (String) iter.next();
+		}
+		
+		return buses;
+	}
+
+	public static void main(String[] args) {
+		BusStop[] stops = parseNearest(DataFetcher.fetchNearestStops("53.794333", "-1.7675"));
 		printBuses(stops);
+
 	}
 }
