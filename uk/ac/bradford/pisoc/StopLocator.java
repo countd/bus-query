@@ -1,5 +1,8 @@
 package uk.ac.bradford.pisoc;
 
+import java.net.ProtocolException;
+import java.net.MalformedURLException;
+
 public class StopLocator {
 
 	/**
@@ -10,7 +13,10 @@ public class StopLocator {
 	   @return A BusStop object representing the nearest bus stop to the specified coordinates.
 	   @see BusStop
 	 */
-	public static BusStop getNearest(String lat, String lon, String bus) {
+	public static BusStop getNearest(String lat, String lon, String bus) 
+		throws NoBusStopFoundException, UnableToContactServerException,
+			   ProtocolException, MalformedURLException,
+			   MalformedServerResponseException {
 		return JSONParser.parseNearest(DataFetcher.fetchNearestStops(lat, lon), bus);
 	}
 	

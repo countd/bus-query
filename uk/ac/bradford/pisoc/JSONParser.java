@@ -5,27 +5,25 @@ import java.util.regex.Pattern;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.net.ProtocolException;
+import java.net.MalformedURLException;
 
 class JSONParser {
 	private static Pattern
 		JSONElementPattern = Pattern.compile("\"(\\w+)\":\"*([\\w\\d\\.\\-\\s]*)\"*");
 
-	private static void printBuses(BusStop[] stops) {
-		for(int i = 0; i < stops.length; i++) {
-			System.out.println(stops[i]);
-		}
-	}
-
-	private static String getStopsJSON(String json) {
+	private static String getStopsJSON(String json) 
+		throws MalformedServerResponseException {
 		Matcher stopsMatcher = Pattern.compile("\"stops\":\\[([\\w\\W]+)\\]").matcher(json);
 		if(stopsMatcher.find()) {
 			return stopsMatcher.group(1);
 		} else {
-			return ""; // thow exception here?
+			throw new MalformedServerResponseException("Unable to find any bus stops in JSON");
 		}
 	}
 
-	private static String[] getStopsInfo(String json) {
+	private static String[] getStopsInfo(String json) 
+		throws NoBusStopFoundException {
 		String[] stops = null;
 		int filledStops = 0;
 		
@@ -36,7 +34,12 @@ class JSONParser {
 			stopsCount++;
 		}
 		stopsInfoMatcher.reset();
-		stops = new String[stopsCount]; // check that it's not zero
+
+		if (stopsCount == 0) {
+			throw new NoBusStopFoundException("No bus stops extracted from JSON.");
+		}
+
+		stops = new String[stopsCount];
 
 		while(stopsInfoMatcher.find()) {
 			String infoBlock = stopsInfoMatcher.group();
@@ -46,7 +49,9 @@ class JSONParser {
 		return stops;
 	}
 
-	private static BusStop parseAStop(String json) {
+	private static BusStop parseAStop(String json)
+		throws UnableToContactServerException,
+			   ProtocolException, MalformedURLException {
 		String lat = "", lon = "", atco = "";
 		long distance = 0;
 		Matcher infoElementMatcher = JSONElementPattern.matcher(json);
@@ -68,7 +73,10 @@ class JSONParser {
 	}
 
 	
-	public static BusStop parseNearest(String json, String bus) {
+	public static BusStop parseNearest(String json, String bus) 
+		throws NoBusStopFoundException, MalformedServerResponseException,
+			   UnableToContactServerException, ProtocolException,
+			   MalformedURLException {
 		String[] stops = getStopsInfo(getStopsJSON(json));
 
 		for (String infoBlock : stops) {
@@ -78,10 +86,13 @@ class JSONParser {
 			}
 		}
 
-		return null;
+		throw new NoBusStopFoundException("Could not find any bus stops sufficiently close.");
 	}
 
-	public static BusStop[] parseNearestAsArray(String json) {
+	public static BusStop[] parseNearestAsArray(String json) 
+		throws MalformedServerResponseException, NoBusStopFoundException, 
+			   UnableToContactServerException, ProtocolException,
+			   MalformedURLException {
 		String[] stops = getStopsInfo(getStopsJSON(json));
 		int filledStops = 0;
 		BusStop[] busStops = new BusStop[stops.length];
