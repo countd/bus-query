@@ -13,10 +13,6 @@ public class JSONParser {
 		}
 	}
 
-	public static BusStop parseNearest(String json, String bus) {
-		return null;
-	}
-
 	private static String getStopsJSON(String json) {
 		Matcher stopsMatcher = Pattern.compile("\"stops\":\\[([\\w\\W]+)\\]").matcher(json);
 		if(stopsMatcher.find()) {
@@ -47,28 +43,47 @@ public class JSONParser {
 		return stops;
 	}
 
+	private static BusStop parseAStop(String json) {
+		String lat = "", lon = "", atco = "";
+		long distance = 0;
+		Matcher infoElementMatcher = JSONElementPattern.matcher(json);
+		while(infoElementMatcher.find()) {
+			String elementName = infoElementMatcher.group(1);
+			String elementContent = infoElementMatcher.group(2);
+			if (elementName.equals("atcocode")) {
+				atco = elementContent;
+			} else if (elementName.equals("latitude")) {
+				lat = elementContent;
+			} else if (elementName.equals("longitude")) {
+				lon = elementContent;
+			} else if (elementName.equals("distance")) {
+				distance = Long.parseLong(elementContent, 10);
+			}
+		}
+
+		return new BusStop(lat,lon,atco,distance);
+	}
+
+	
+	public static BusStop parseNearest(String json, String bus) {
+		String[] stops = getStopsInfo(getStopsJSON(json));
+
+		for (String infoBlock : stops) {
+			BusStop s = parseAStop(infoBlock);
+			if(s.hasBus(bus)) {
+				return s;
+			}
+		}
+
+		return null;
+	}
+
 	public static BusStop[] parseNearestAsArray(String json) {
 		String[] stops = getStopsInfo(getStopsJSON(json));
 		int filledStops = 0;
 		BusStop[] busStops = new BusStop[stops.length];
 		for(String infoBlock : stops) {
-			String lat = "", lon = "", atco = "";
-			long distance = 0;
-			Matcher infoElementMatcher = JSONElementPattern.matcher(infoBlock);
-			while(infoElementMatcher.find()) {
-				String elementName = infoElementMatcher.group(1);
-				String elementContent = infoElementMatcher.group(2);
-				if (elementName.equals("atcocode")) {
-					atco = elementContent;
-				} else if (elementName.equals("latitude")) {
-					lat = elementContent;
-				} else if (elementName.equals("longitude")) {
-					lon = elementContent;
-				} else if (elementName.equals("distance")) {
-					distance = Long.parseLong(elementContent, 10);
-				}
-			}
-			busStops[filledStops++] = new BusStop(lat, lon, atco, distance);
+			busStops[filledStops++] = parseAStop(infoBlock);
 		}
 		
 		return busStops;
@@ -98,7 +113,9 @@ public class JSONParser {
 
 	public static void main(String[] args) {
 		BusStop[] stops = parseNearestAsArray(DataFetcher.fetchNearestStops("53.794333", "-1.7675"));
-		printBuses(stops);
+			printBuses(stops);
 
+		System.out.println("The neareast bus stop for bus number is 615 is:");
+		System.out.println(parseNearest(DataFetcher.fetchNearestStops("53.794333", "-1.7675"), "615"));
 	}
 }
