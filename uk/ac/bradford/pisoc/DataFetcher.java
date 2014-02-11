@@ -1,3 +1,5 @@
+package uk.ac.bradford.pisoc;
+
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -7,7 +9,7 @@ import java.io.IOException;
 import java.net.ProtocolException;
 import java.net.MalformedURLException;
 
-public class DataFetcher {
+class DataFetcher {
 	static final String BASE_URL = "http://api.stride-project.com/transportapi/7c60e7f4-20ff-11e3-857c-fcfb53959281/bus";
 	static final String NEAR_URL = "/stops/near";
 	static final String API_KEY = "d74fce25-7c10-4e0d-b137-0c752f454d5f";
@@ -76,7 +78,4 @@ public class DataFetcher {
 		return json;
 	}
 	
-	public static void main(String[] argv) {
-		System.out.println(fetchStopInfo(argv[0]));
-	}
 }

@@ -1,9 +1,12 @@
+package uk.ac.bradford.pisoc;
+
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.Iterator;
-public class JSONParser {
+
+class JSONParser {
 	private static Pattern
 		JSONElementPattern = Pattern.compile("\"(\\w+)\":\"*([\\w\\d\\.\\-\\s]*)\"*");
 
@@ -111,11 +114,4 @@ public class JSONParser {
 		return buses;
 	}
 
-	public static void main(String[] args) {
-		BusStop[] stops = parseNearestAsArray(DataFetcher.fetchNearestStops("53.794333", "-1.7675"));
-			printBuses(stops);
-
-		System.out.println("The neareast bus stop for bus number is 615 is:");
-		System.out.println(parseNearest(DataFetcher.fetchNearestStops("53.794333", "-1.7675"), "615"));
-	}
 }
